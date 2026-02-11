@@ -47,6 +47,7 @@
         "base64url": "^3.0.1",
         "dayjs": "^1.11.13",
         "fastestsmallesttextencoderdecoder": "^1.0.22",
+        "js-yaml": "^4.1.0",
         "lodash.clonedeep": "^4.5.0",
         "lodash.isempty": "^4.4.0",
         "lodash.sortby": "^4.7.0",

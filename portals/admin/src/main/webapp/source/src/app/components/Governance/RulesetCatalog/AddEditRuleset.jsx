@@ -57,6 +57,7 @@ import Utils from 'AppData/Utils';
 
 import * as monaco from 'monaco-editor';
 import { Editor as MonacoEditor, loader } from '@monaco-editor/react';
+import GenericRulesetForm from './GenericRulesetForm';
 
 // load Monaco from node_modules instead of CDN
 loader.config({ monaco });
@@ -95,6 +96,7 @@ function reducer(state, { field, value }) {
         case 'provider':
         case 'rulesetContent':
         case 'documentationLink':
+        case 'ruleCategory':
             nextState[field] = value;
             return nextState;
         default:
@@ -119,6 +121,7 @@ function AddEditRuleset(props) {
         provider: '',
         rulesetContent: '',
         documentationLink: '',
+        ruleCategory: '',
     };
     const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -129,7 +132,10 @@ function AddEditRuleset(props) {
         artifactType,
         rulesetContent,
         documentationLink,
+        ruleCategory,
     } = state;
+
+    const isGenericRuleset = ruleCategory === 'GENERIC';
 
     useEffect(() => {
         const restApi = new GovernanceAPI();
@@ -341,7 +347,7 @@ function AddEditRuleset(props) {
         const body = {
             ...state,
             provider: AuthManager.getUser().name,
-            ruleCategory: 'SPECTRAL',
+            ruleCategory: ruleCategory || 'SPECTRAL',
             rulesetContent: file,
         };
 
@@ -581,63 +587,77 @@ function AddEditRuleset(props) {
                             />
                         </Typography>
                         <Typography color='inherit' variant='caption' component='p'>
-                            <FormattedMessage
-                                id='Governance.Rulesets.AddEdit.content.description'
-                                defaultMessage='Define the ruleset content in YAML or JSON format'
-                            />
+                            {isGenericRuleset ? (
+                                <FormattedMessage
+                                    id='Governance.Rulesets.AddEdit.content.description.generic'
+                                    defaultMessage='Configure deduplication detection settings'
+                                />
+                            ) : (
+                                <FormattedMessage
+                                    id='Governance.Rulesets.AddEdit.content.description'
+                                    defaultMessage='Define the ruleset content in YAML or JSON format'
+                                />
+                            )}
                         </Typography>
                     </Grid>
 
                     <Grid item xs={12} md={12} lg={12}>
                         <Box component='div' m={1}>
-                            <Paper variant='outlined'>
-                                <EditorToolbar>
-                                    <Box sx={{ display: 'flex', gap: 1 }}>
-                                        <Button
-                                            component='label'
-                                            variant='contained'
-                                            startIcon={<CloudUploadIcon />}
-                                            size='small'
-                                        >
-                                            <FormattedMessage
-                                                id='Governance.Rulesets.AddEdit.button.upload'
-                                                defaultMessage='Upload File'
-                                            />
-                                            <input
-                                                type='file'
-                                                hidden
-                                                accept='.yaml,.yml,.json'
-                                                onChange={handleFileUpload}
-                                            />
-                                        </Button>
-                                        <Button
-                                            variant='contained'
-                                            startIcon={<CloudDownloadIcon />}
-                                            size='small'
-                                            onClick={handleDownload}
-                                        >
-                                            <FormattedMessage
-                                                id='Governance.Rulesets.AddEdit.button.download'
-                                                defaultMessage='Download'
-                                            />
-                                        </Button>
-                                    </Box>
-                                </EditorToolbar>
-                                <EditorContainer>
-                                    <MonacoEditor
-                                        height='100%'
-                                        defaultLanguage='yaml'
-                                        value={rulesetContent}
-                                        onChange={handleEditorChange}
-                                        theme='light'
-                                        options={{
-                                            minimap: { enabled: false },
-                                            lineNumbers: 'on',
-                                            scrollBeyondLastLine: false,
-                                        }}
-                                    />
-                                </EditorContainer>
-                            </Paper>
+                            {isGenericRuleset ? (
+                                <GenericRulesetForm
+                                    rulesetContent={rulesetContent}
+                                    onContentChange={handleEditorChange}
+                                />
+                            ) : (
+                                <Paper variant='outlined'>
+                                    <EditorToolbar>
+                                        <Box sx={{ display: 'flex', gap: 1 }}>
+                                            <Button
+                                                component='label'
+                                                variant='contained'
+                                                startIcon={<CloudUploadIcon />}
+                                                size='small'
+                                            >
+                                                <FormattedMessage
+                                                    id='Governance.Rulesets.AddEdit.button.upload'
+                                                    defaultMessage='Upload File'
+                                                />
+                                                <input
+                                                    type='file'
+                                                    hidden
+                                                    accept='.yaml,.yml,.json'
+                                                    onChange={handleFileUpload}
+                                                />
+                                            </Button>
+                                            <Button
+                                                variant='contained'
+                                                startIcon={<CloudDownloadIcon />}
+                                                size='small'
+                                                onClick={handleDownload}
+                                            >
+                                                <FormattedMessage
+                                                    id='Governance.Rulesets.AddEdit.button.download'
+                                                    defaultMessage='Download'
+                                                />
+                                            </Button>
+                                        </Box>
+                                    </EditorToolbar>
+                                    <EditorContainer>
+                                        <MonacoEditor
+                                            height='100%'
+                                            defaultLanguage='yaml'
+                                            value={rulesetContent}
+                                            onChange={handleEditorChange}
+                                            theme='light'
+                                            options={{
+                                                minimap: { enabled: false },
+                                                lineNumbers: 'on',
+                                                scrollBeyondLastLine: false,
+                                            }}
+                                        />
+                                    </EditorContainer>
+                                </Paper>
+                            )}
                         </Box>
                         {validating && hasErrors('rulesetContent', rulesetContent, true) && (
                             <Box sx={{ color: 'error.main', pl: 2, pb: 1 }}>
